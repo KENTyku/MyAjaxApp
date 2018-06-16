@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!существует веб-страница, на которой пользователь может выполнять поиск 
+информации о композиторах. Эта страница содержит поле, в которое вводится имя 
+композитора. В примере приложения для поля ввода может использоваться функция 
+автозавершения. Другими словами, пользователь может ввести часть имени 
+композитора, после чего веб-приложение предложит варианты полного имени, 
+перечислив всех композиторов, чьи имена или фамилии начинаются с введенных 
+символов. Таким образом, пользователь может не помнить полное имя композитора,
+однако функция автозавершения обеспечит быстрый интуитивный доступ к требуемой 
+информации.
+>
+<html>
+    <head>
+        <title>Start Page</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <!-- ссылка на файл javascript.js-->
+        <script type="text/javascript" src="javascript.js"></script>
+    </head>
+    <body onload="init()"> <!-- обеспечит выполнение вызова init() при каждой 
+                           загрузке страницы --> 
+        <h1>Hello World!</h1>
+        <form name="autofillform" action="autocomplete">
+            <table border="1" cellpadding="5">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Composer Name:</strong></td>
+                        <td> <input type="text"
+                                    size="40"
+                                    id="complete-field"
+                                    onkeyup="doCompletion();"></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </form>
+
+    </body>
+</html>
