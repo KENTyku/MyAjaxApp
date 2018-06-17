@@ -22,9 +22,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet(name = "AutoCompleteServlet", urlPatterns = {"/autocomplete"})
 public class AutoCompleteServlet extends HttpServlet {
-    CountriesTableReader ctr;    
-    private ArrayList<Country> countriesList=new ArrayList<Country>();
-    
+
+    CountriesTableReader ctr;
+    private ArrayList<Country> countriesList = new ArrayList<Country>();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,24 +39,63 @@ public class AutoCompleteServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, ClassNotFoundException, SQLException {
-        
+
         //считываем данные из запроса
         String action = request.getParameter("action");
-        String targetId = request.getParameter("id");
-        
-        StringBuffer sb = new StringBuffer();//для временного сохранения строки xml
-        
+        String targetId = request.getParameter("id");//получение из запроса 
+        //скрипта значения поля формы(введенное пользователем значение)
+
+        StringBuffer sb = new StringBuffer();//для временного сохранения строки (для формирования xml)
+
         //читаем из БД
-        ctr=new CountriesTableReader();
+        ctr = new CountriesTableReader();
 //            ctr.createdb();
-        countriesList=ctr.readCountries();
+        
+        countriesList = ctr.readCountries();
 //        System.out.println(request.getParameter("id")); 
 //        System.out.println("TEST");
-        
-        //отправляем ответ на запрос
-        response.setContentType("text/xml;charset=UTF-8");        
-        response.setHeader("Cache-Control", "no-cache");
-        response.getWriter().write("<composers>" + sb.toString() + "</composers>");
+        if (targetId != null) {//если значение не нулевое
+            targetId = targetId.trim().toLowerCase();//убираем спереди и в конце пробелы, и делаем все буквы прописными
+        } else {
+//            context.getRequestDispatcher("/error.jsp").forward(request, response);
+        }
+
+        boolean namesAdded = false;
+
+        if (action.equals("complete")) {//идентифицируем наш запрос из всех возможных запросов
+
+            // проверяем что запрос не пустой
+            if (!targetId.equals("")) {
+
+//                Iterator it = composers.keySet().iterator();
+
+                for(Country itemCountry :countriesList) {
+//                    String id = (String) it.next();
+//                    Composer composer = (Composer) composers.get(id);
+
+                    if ( //сравниваем название страны (сделав все буквы прописными) с запросом в форме
+                            itemCountry.getName().toLowerCase().startsWith(targetId)
+                           ) {
+
+                        sb.append("<country>");
+//                        sb.append("<id>" + composer.getId() + "</id>");
+                        sb.append("<name>" + itemCountry.getName() + "</name>");
+//                        sb.append("<lastName>" + composer.getLastName() + "</lastName>");
+                        sb.append("</country>");
+                        namesAdded = true;
+                    }
+                }
+            }
+            if (namesAdded) {
+                //если имена добавлены, то отправляем в ответ на запрос xml строку
+                response.setContentType("text/xml");
+                response.setHeader("Cache-Control", "no-cache");
+                response.getWriter().write("<countries>" + sb.toString() + "</countries>");//xml строка
+            } else {
+                //nothing to show
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            }
+        }
 //        try (PrintWriter out = response.getWriter()) {
 //            /* TODO output your page here. You may use following sample code. */
 //            out.println("<!DOCTYPE html>");
@@ -69,7 +108,7 @@ public class AutoCompleteServlet extends HttpServlet {
 //            out.println("</body>");
 //            out.println("</html>");                       
 //        }
-        
+
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

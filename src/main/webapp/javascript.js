@@ -17,7 +17,7 @@ function init() {
     autoRow = document.getElementById("auto-row");
     completeTable.style.top = getElementY(autoRow) + "px";
 }
-
+//запрос на веб-сервер
 function doCompletion() {
         //формируем строку для запроса к серверу
         var url = "autocomplete?action=complete&id=" + escape(completeField.value);
@@ -32,11 +32,14 @@ function doCompletion() {
          * функцию обратного вызова. Функция обратного вызова для этого 
          * взаимодействия определяется при помощи следующего оператора:        
          */
-        req.onreadystatechange = callback;       
+        req.onreadystatechange = callback; //функция обратного вызова callback,
+        // которая будет вызываться при изменении состояния readyState 
+        // объекта XMLHttpRequest нашего подготовленного запроса в процессе 
+        // его дальнейшей отправки    
         
         req.send(null);//отсылаем запрос
 }
-
+// подготовка запроса для адаптации с браузером
 function initRequest() {
     if (window.XMLHttpRequest) {//если возможно вызвать метод XMLHttpRequest
         //проверка на используемый браузер (MSIE)
@@ -50,16 +53,18 @@ function initRequest() {
         return new ActiveXObject("Microsoft.XMLHTTP");//и делаем это если это возможно 
     }
 }
-
+//функция обратного вызова, запускающая обработчик принятого ответа от веб-сервера
 function callback() {
-    if (req.readyState == 4) {
-        if (req.status == 200) {
-            parseMessages(req.responseXML);
+    clearTable();//любые скомбинированные записи, существующие в окне 
+    //автозавершения, удаляются до того, как выполняется заполнение новыми записями.
+    if (req.readyState == 4) {//состояние объекта XMLHttpRequest нашего запроса=запрос завершен и ответ готов 
+        if (req.status == 200) {// код ответа на наш запрос =запрос обработан успешно
+            parseMessages(req.responseXML);//парсим полученное в ответ сообщение
         }
     }
 }
-
-function appendComposer(firstName,lastName,composerId) {
+//добавляет страну в таблицу предложений поиска
+function appendCountry(name) {
 
     var row;
     var cell;
@@ -81,11 +86,11 @@ function appendComposer(firstName,lastName,composerId) {
 
     linkElement = document.createElement("a");
     linkElement.className = "popupItem";
-    linkElement.setAttribute("href", "autocomplete?action=lookup&id=" + composerId);
-    linkElement.appendChild(document.createTextNode(firstName + " " + lastName));
+    linkElement.setAttribute("href", "autocomplete?action=lookup&id=" );
+    linkElement.appendChild(document.createTextNode(name));
     cell.appendChild(linkElement);
 }
-
+//для выравнивания таблицы предложений
 function getElementY(element){
 
     var targetTop = 0;
@@ -99,4 +104,39 @@ function getElementY(element){
         targetTop += element.y;
     }
     return targetTop;
+}
+//очистка таблицы предложений поиска
+function clearTable() {
+    if (completeTable.getElementsByTagName("tr").length > 0) {
+        completeTable.style.display = 'none';
+        for (loop = completeTable.childNodes.length -1; loop >= 0 ; loop--) {
+            completeTable.removeChild(completeTable.childNodes[loop]);
+        }
+    }
+}
+//парсинг ответа веб-сервера
+function parseMessages(responseXML) {
+
+    // no matches returned
+    if (responseXML == null) {
+        return false;
+    } else {
+        
+        //присваиваем перый элемент массива ссылок данного имени, 
+        //найденных во всем документе
+        var countries = responseXML.getElementsByTagName("countries")[0];
+        
+        if (countries.childNodes.length > 0) {
+            completeTable.setAttribute("bordercolor", "black");
+            completeTable.setAttribute("border", "1");
+
+            for (loop = 0; loop < countries.childNodes.length; loop++) {
+                var country = countries.childNodes[loop];
+                var name = country.getElementsByTagName("name")[0];
+//                var lastName = country.getElementsByTagName("lastName")[0];
+//                var composerId = country.getElementsByTagName("id")[0];
+                appendCountry(name.childNodes[0].nodeValue);
+            }
+        }
+    }
 }
